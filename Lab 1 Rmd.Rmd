@@ -32,7 +32,7 @@ top_5_status <- sf_trees %>%
   drop_na(legal_status) %>% 
   rename(tree_count = n) %>% 
   relocate(tree_count) %>% 
-  slice_max(tree_count, n = 5) %>%
+  slice_max(tree_count, n = 5)
   
 
 ```
