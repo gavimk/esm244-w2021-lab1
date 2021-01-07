@@ -1,0 +1,39 @@
+---
+title: "I <3 SF: Trees and Streets in my Favorite City <3 <3"
+author: "Carbon Counters"
+date: "1/7/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Attach Packages
+library(tidyverse)
+library(dplyr)
+library(here)
+library(sf)
+library(tmap)
+```
+
+I am #blessed to get to look at SF trees, including Cole Valley trees, the best trees.
+
+Below, I wrangle some data because Allison told me to. We'll find the top 5 highest observations of trees by legal status, wrangle, and graph. 
+```{r}
+
+# read in SF trees data
+
+sf_trees <- read_csv(here::here("data", "sf_trees", "sf_trees.csv"))
+
+# basic wrangling reminders
+
+top_5_status <- sf_trees %>% 
+  count(legal_status) %>% 
+  drop_na(legal_status) %>% 
+  rename(tree_count = n) %>% 
+  relocate(tree_count) %>% 
+  slice_max(tree_count, n = 5) %>%
+  
+
+```
+
