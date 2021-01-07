@@ -33,7 +33,98 @@ top_5_status <- sf_trees %>%
   rename(tree_count = n) %>% 
   relocate(tree_count) %>% 
   slice_max(tree_count, n = 5)
-  
 
+print(top_5_status)
+```
+
+And now, a 
+#GRAPH
+
+```{r}
+ggplot(data = top_5_status, aes(x = fct_reorder(legal_status, tree_count), y = tree_count))+
+  geom_col()+
+  labs(x = "Legal Status", y = "Tree Count")+
+  coord_flip()+
+  theme_minimal()
+
+```
+
+How refreshing...Blackwood Acacia Trees. Finally, learning how to do text to columns in R
+
+```{r}
+
+blackwood <- sf_trees %>%
+  filter(str_detect(species, "Blackwood Acacia")) %>% 
+  select(legal_status, date, latitude, longitude)
+
+ggplot(data = blackwood, aes(x = longitude, y = latitude))+
+  geom_point()
+
+```
+
+little more wrangling - separate and unite (combine or separate columns)
+
+```{r}
+
+#separate
+sf_trees_sep <- sf_trees %>% 
+  separate(species, into = c("spp_scientific", "spp_common"), sep = "::")
+
+#unite
+
+sf_trees_unite <- sf_trees %>% 
+  unite("id_status", tree_id:legal_status, sep = "LOVES")
+```
+
+Maps!!!! I'm gonna go rogue and not do what Allison did. We're going to first use `st_as_sf()` to convert lat and long to spatial coordinates.
+
+```{r}
+all_trees_spatial <- sf_trees_sep %>% 
+  select(spp_common, latitude, longitude) %>%
+  drop_na() %>% 
+  st_as_sf(coords = c("longitude", "latitude"))
+
+count_spp <- all_trees_spatial %>% 
+  select(!geometry) %>% 
+  count(spp_common) %>% 
+  filter(spp_common != "") %>% 
+  slice_max(n, n = 5)
+
+top_tree <- unique(count_spp$spp_common)
+
+all_trees_spatial <- all_trees_spatial %>% 
+  filter(spp_common %in% c(top_tree))
+
+st_crs(all_trees_spatial) = 4326
+
+ggplot(data = all_trees_spatial)+
+  geom_sf(aes(color = spp_common))
+```
+
+Read in SF roads shapefile
+```{r}
+sf_map <- read_sf(here("data", "sf_map", "tl_2017_06075_roads.shp"))
+
+st_transform(sf_map, 4326)
+
+ggplot(data = sf_map)+
+  geom_sf()
+```
+
+Now we'll combine them!
+
+```{r}
+ggplot()+
+  geom_sf(data = sf_map, size = 0.1, color = "darkgray")+
+  geom_sf(data = all_trees_spatial, aes (color = spp_common), size = .1)+
+  theme_void()
+```
+
+Let's make it interactive
+```{r}
+tmap_mode("view")
+
+tm_shape(all_trees_spatial)+
+  tm_dots()
 ```
 
